@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:alpine3.19
+    restart: no
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    container_name: db-mgt
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+
+  storage:
+    image: docker.io/bitnami/minio:2023
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    restart: no
+    container_name: storage-mgt
+    environment:
+      - MINIO_ROOT_USER=minio
+      - MINIO_ROOT_PASSWORD=1234567890
+      - MINIO_DEFAULT_BUCKETS=document-management
+    volumes:
+      - minio-data:/data
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: document-mgt-app
+    env_file:
+      - .env
+    ports:
+      - '3000:3000'
+    depends_on:
+      - db
+      - storage
+    volumes:
+      - ./src:/app/src
+
+volumes:
+  pg-data:
+  minio-data:
