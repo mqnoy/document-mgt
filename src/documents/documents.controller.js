@@ -52,11 +52,10 @@ export class DocumentController {
     result.fileStream.pipe(res);
   }
 
-  @Delete(':id')
+  @Delete('/:id')
   @Bind(Param())
-  deleteDocument(param) {
-    console.log(`param: `, param.id);
-    return this.documentService.deleteDocument();
+  async deleteDocument(param) {
+    return await this.documentService.deleteDocument(param);
   }
 
   @Put(':id')
