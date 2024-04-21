@@ -9,7 +9,7 @@
   "scripts": {
     "format": "prettier --write \"**/*.js\"",
     "dev": "npm run generate && nodemon --watch \"src/**\" --ext \"js,json\" --exec \"node src/index.js\"",
-    "start": "node dist/main.js",
+    "start": "npm run build && node dist/main.js",
     "start:dev": "nodemon",
     "build": "babel src --out-dir dist",
     "lint": "eslint ./src",
