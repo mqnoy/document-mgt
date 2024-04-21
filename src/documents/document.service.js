@@ -13,7 +13,34 @@ export class DocumentService {
     this.logger.setContext(DocumentService.name);
   }
 
-  async createDocument() {}
+  async createDocument(payload) {
+    const { title, objectName, mimeType } = payload;
+    try {
+      // TODO: Determine member id from authorized user
+      const memberId = 1;
+
+      const document = await this.prismaService.document.create({
+        data: {
+          title,
+          objectName,
+          mimeType,
+        },
+      });
+
+      await this.prismaService.documentMember.create({
+        data: {
+          memberId,
+          documentId: document.id,
+          isOwner: true,
+        },
+      });
+
+      return document;
+    } catch (error) {
+      this.logger.error('Error while creating documents err:', error);
+      throw error;
+    }
+  }
 
   async listDocuments() {
     // TODO: list document code here

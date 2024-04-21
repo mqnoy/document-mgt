@@ -28,8 +28,9 @@ export class DocumentController {
   }
 
   @Post('/')
-  postCreateDocument() {
-    return this.documentService.createDocument();
+  @Bind(Body())
+  postCreateDocument(body) {
+    return this.documentService.createDocument(body);
   }
 
   @Post('/presign-upload')
