@@ -62,4 +62,10 @@ export class DocumentController {
   patchShareDocument(param) {
     return this.documentService.shareDocument();
   }
+
+  @Get('/:id')
+  @Bind(Param())
+  async getDetailDocument(param) {
+    return await this.documentService.detailDocument(param);
+  }
 }

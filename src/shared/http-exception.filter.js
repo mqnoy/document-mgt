@@ -9,15 +9,13 @@ export class HttpExceptionFilter {
     const request = ctx.getRequest();
     const status = exception.getStatus();
 
-    let message = null;
     if (String(status).startsWith('5')) {
-      message = exception;
       logger.error(`url ${request.url} err:`, exception);
     }
 
     response.status(status).json({
-      path: request.url,
-      message,
+      statusCode: status,
+      message: exception.message,
     });
   }
 }

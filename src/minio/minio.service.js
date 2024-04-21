@@ -71,4 +71,22 @@ export class MinioService {
       throw error;
     }
   }
+
+  async getObjectUrl(objectName) {
+    const expiry = 24 * 60 * 60; // 1 day
+    try {
+      const objectUrl = await this.client.presignedGetObject(
+        config.minio.bucket,
+        objectName,
+        expiry,
+      );
+
+      this.logger.debug(`getObjectUrl: ${objectUrl}`);
+
+      return objectUrl;
+    } catch (error) {
+      this.logger.error(`Error while get object ${objectName} error:`, error);
+      throw error;
+    }
+  }
 }
