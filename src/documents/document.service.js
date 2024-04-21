@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { MinioService } from '../minio/minio.service';
+import { filterKeys } from '../common/constant';
 
 @Dependencies(PrismaService, ConsoleLogger, MinioService)
 @Injectable()
@@ -48,14 +49,80 @@ export class DocumentService {
     }
   }
 
-  async listDocuments() {
-    // TODO: list document code here
-    try {
-      const documents = await this.prismaService.document.findMany();
-      return documents;
-    } catch (error) {
-      console.error('Error listing documents:', error);
-      throw error;
+  async listDocuments(payload) {
+    const { skip, take, sortBy } = payload;
+    const filters = payload.filters ?? {};
+    const orderBy = this.parseSortBy(sortBy);
+
+    let where = {};
+
+    // TODO: Determine member id from authorized user
+    const memberId = 1;
+
+    if (filters[filterKeys.Title]) {
+      Object.assign(where, {
+        title: {
+          contains: `${filters[filterKeys.Title]}`,
+        },
+      });
+    }
+
+    if (filters[filterKeys.ObjectName]) {
+      Object.assign(where, {
+        objectName: {
+          contains: `${filters[filterKeys.ObjectName]}`,
+        },
+      });
+    }
+
+    const rows = await this.prismaService.document.findMany({
+      relationLoadStrategy: 'join',
+      include: {
+        members: true,
+      },
+      take: take ? Number(take) : 10,
+      skip: skip ? Number(skip) : 0,
+      orderBy,
+      where: {
+        members: {
+          some: {
+            hasAccess: {
+              equals: true,
+            },
+            memberId: {
+              equals: memberId,
+            },
+          },
+        },
+      },
+    });
+
+    let results = [];
+    for (const row of rows) {
+      const temp = await this.composeDoument(row);
+      results.push(temp);
+    }
+
+    return results;
+  }
+
+  parseSortBy(sortBy) {
+    switch (sortBy) {
+      case 'title-asc': {
+        return [{ title: 'asc' }];
+      }
+      case 'title-desc': {
+        return [{ title: 'desc' }];
+      }
+      case 'latest': {
+        return [{ createdAt: 'desc' }];
+      }
+      case 'older': {
+        return [{ createdAt: 'asc' }];
+      }
+      default: {
+        return [{ createdAt: 'desc' }];
+      }
     }
   }
 

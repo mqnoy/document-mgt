@@ -24,8 +24,7 @@ export class DocumentController {
   @Get('/')
   @Bind(Query())
   async getDocumentList(query) {
-    console.log(`query: `, query);
-    return await this.documentService.listDocuments();
+    return await this.documentService.listDocuments(query);
   }
 
   @Post('/')
