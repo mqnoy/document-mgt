@@ -201,7 +201,10 @@ export class DocumentService {
 
   async composeDoument(document) {
     // Resolve objectname to url
-    const objectUrl = await this.minioService.getObjectUrl(document.objectName);
+    let objectUrl = '';
+    if (document.objectName) {
+      objectUrl = await this.minioService.getObjectUrl(document.objectName);
+    }
 
     return {
       id: document.id,
