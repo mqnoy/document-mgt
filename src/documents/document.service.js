@@ -69,9 +69,35 @@ export class DocumentService {
     };
   }
 
-  downloadDocument() {
-    // TODO: download document code here
-    return null;
+  async downloadDocument(payload) {
+    // TODO: Determine member id from authorized user
+    const memberId = 1;
+
+    const document = await this.prismaService.document.findUnique({
+      where: {
+        id: Number(payload.id),
+      },
+    });
+
+    if (!document) {
+      throw new HttpException(
+        `document with id ${payload.id} not found`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    // Validate access authorized member to the document
+    await this.validateDocumentMember(memberId, document.id);
+
+    const fileStream = await this.minioService.getFileStream(
+      document.objectName,
+    );
+
+    return {
+      fileName: document.title,
+      mimeType: document.mimeType,
+      fileStream,
+    };
   }
 
   deleteDocument() {

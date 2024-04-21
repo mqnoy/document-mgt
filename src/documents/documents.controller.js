@@ -10,6 +10,7 @@ import {
   Param,
   Query,
   Body,
+  Res,
 } from '@nestjs/common';
 import { DocumentService } from './document.service';
 
@@ -39,9 +40,16 @@ export class DocumentController {
     return await this.documentService.presignUploadDocument(body);
   }
 
-  @Get('/download')
-  getDownloadDocument() {
-    return this.documentService.downloadDocument();
+  @Get('/:id/download')
+  @Bind(Param(), Res())
+  async getDownloadDocument(param, res) {
+    const result = await this.documentService.downloadDocument(param);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${result.fileName}"`,
+    );
+    res.setHeader('Content-Type', result.mimeType);
+    result.fileStream.pipe(res);
   }
 
   @Delete(':id')

@@ -89,4 +89,8 @@ export class MinioService {
       throw error;
     }
   }
+
+  async getFileStream(objectName) {
+    return await this.client.getObject(config.minio.bucket, objectName);
+  }
 }
