@@ -171,8 +171,11 @@ export class DocumentService {
   }
 
   async deleteDocument(payload) {
-    // TODO: Determine member id from authorized user
-    const memberId = 1;
+    const { subject } = payload;
+
+    // Determine member id from authorized user
+    const user = await this.userService.findUserByUserId(subject.subjectId);
+    const memberId = user.member.id;
 
     const document = await this.prismaService.document.findUnique({
       where: {
@@ -190,21 +193,17 @@ export class DocumentService {
     // Validate access authorized member to the document
     await this.validateDocumentMember(memberId, document.id);
 
-    const deleteDocumentMember = this.prismaService.documentMember.deleteMany({
-      where: {
-        documentId: document.id,
-      },
-    });
-
-    const deleteDocument = this.prismaService.document.delete({
-      where: {
-        id: document.id,
-      },
-    });
-
     await this.prismaService.$transaction([
-      deleteDocumentMember,
-      deleteDocument,
+      this.prismaService.documentMember.deleteMany({
+        where: {
+          documentId: document.id,
+        },
+      }),
+      this.prismaService.document.delete({
+        where: {
+          id: document.id,
+        },
+      }),
     ]);
 
     return null;

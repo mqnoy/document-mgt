@@ -80,9 +80,15 @@ export class DocumentController {
   }
 
   @Delete('/:id')
-  @Bind(Param())
-  async deleteDocument(param) {
-    return await this.documentService.deleteDocument(param);
+  @UseGuards(JwtAuthGuard)
+  @Bind(Req(), Param())
+  async deleteDocument(req, param) {
+    const payload = {
+      subject: getSubject(req),
+      id: param.id,
+    };
+
+    return await this.documentService.deleteDocument(payload);
   }
 
   @Put(':id')
