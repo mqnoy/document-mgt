@@ -209,9 +209,41 @@ export class DocumentService {
     return null;
   }
 
-  updateDocument() {
-    // TODO: update document code here
-    return null;
+  async updateDocument(payload) {
+    const { title, objectName, mimeType, subject } = payload;
+
+    // Determine member id from authorized user
+    const user = await this.userService.findUserByUserId(subject.subjectId);
+    const memberId = user.member.id;
+
+    const document = await this.prismaService.document.findUnique({
+      where: {
+        id: Number(payload.id),
+      },
+    });
+
+    if (!document) {
+      throw new HttpException(
+        `document with id ${payload.id} not found`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    // Validate access authorized member to the document
+    await this.validateDocumentMember(memberId, document.id);
+
+    const updateDocument = await this.prismaService.document.update({
+      where: {
+        id: document.id,
+      },
+      data: {
+        title,
+        objectName,
+        mimeType,
+      },
+    });
+
+    return await this.composeDoument(updateDocument);
   }
 
   shareDocument() {
