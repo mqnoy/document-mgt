@@ -9,7 +9,7 @@ async function main() {
     data: {
       fullName: 'John Doe',
       email: 'john@example.com',
-      password: 'password123',
+      password: '$2a$10$n9GP1cKWYGjM3F93Uc368O8WZyyciy38JF3UbO.5grV1LytimvcM.',
     },
   });
 
