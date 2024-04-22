@@ -2,7 +2,8 @@ import {
   Injectable,
   Dependencies,
   ConsoleLogger,
-  NotFoundException,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -16,36 +17,72 @@ export class UserService {
     this.logger.setContext(UserService.name);
   }
 
-  async me() {
+  async me(payload) {
+    const { subject } = payload;
+
     const row = await this.prismaService.user.findUnique({
-      select: {
-        email: true,
-        fullName: true,
+      relationLoadStrategy: 'join',
+      include: {
+        member: true,
       },
       where: {
-        id: 1,
+        id: subject.subjectId,
       },
     });
+
     if (!row) {
-      throw new NotFoundException('user not found');
+      throw new HttpException(`user not found`, HttpStatus.NOT_FOUND);
     }
-    return row;
+
+    return this.composeUser(row);
   }
 
-  async findUserByEmail(payload) {
-    const { email } = payload;
+  async findUserByEmail(email) {
     const row = await this.prismaService.user.findUnique({
+      relationLoadStrategy: 'join',
+      include: {
+        member: true,
+      },
       where: {
         email,
       },
     });
+
     if (!row) {
-      throw new NotFoundException(`user with email: ${email} not found`, {
-        cause: new Error(),
-        description: 'Some error description',
-      });
+      throw new HttpException(`user not found`, HttpStatus.NOT_FOUND);
     }
 
     return row;
+  }
+
+  async findUserByUserId(userId) {
+    const row = await this.prismaService.user.findUnique({
+      relationLoadStrategy: 'join',
+      include: {
+        member: true,
+      },
+      where: {
+        id: {
+          equals: userId,
+        },
+      },
+    });
+
+    if (!row) {
+      throw new HttpException(`user not found`, HttpStatus.NOT_FOUND);
+    }
+
+    return row;
+  }
+
+  composeUser(row) {
+    return {
+      id: row.id,
+      fullName: row.fullName,
+      email: row.email,
+      member: {
+        id: row.member.id,
+      },
+    };
   }
 }
