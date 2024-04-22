@@ -11,6 +11,10 @@ export class AuthService {
     this.logger.setContext('AuthService');
   }
   registerUser() {
+    // TODO: implement register
+    // const salt = await bcrypt.genSalt(10);
+    // const hashedPass = await bcrypt.hash(password, salt);
+    // this.logger.debug(`hasedPass: ${hashedPass}`);
     return null;
   }
 
