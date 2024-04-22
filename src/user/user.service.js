@@ -119,4 +119,22 @@ export class UserService {
 
     return this.composeUser(result);
   }
+
+  async findMemberById(id) {
+    const row = await this.prismaService.member.findUnique({
+      relationLoadStrategy: 'join',
+      include: {
+        user: true,
+      },
+      where: {
+        id,
+      },
+    });
+
+    if (!row) {
+      throw new HttpException(`member not found`, HttpStatus.NOT_FOUND);
+    }
+
+    return row;
+  }
 }

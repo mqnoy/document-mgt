@@ -246,9 +246,69 @@ export class DocumentService {
     return await this.composeDoument(updateDocument);
   }
 
-  shareDocument() {
-    // TODO: share document code here
-    return null;
+  async shareDocument(payload) {
+    this.logger.debug(payload);
+    const { member: targetMember, subject } = payload;
+    // Determine member id from authorized user
+    const user = await this.userService.findUserByUserId(subject.subjectId);
+    const memberId = user.member.id;
+
+    const document = await this.prismaService.document.findUnique({
+      where: {
+        id: Number(payload.id),
+      },
+    });
+
+    if (!document) {
+      throw new HttpException(
+        `document with id ${payload.id} not found`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    // Validate access authorized member to the document
+    await this.validateDocumentMember(memberId, document.id);
+
+    // Validate target member is exist
+    const targetMemberRow = await this.userService.findMemberById(
+      targetMember.id,
+    );
+
+    // Check target member is already on documentMember or not
+    const documentMember = await this.prismaService.documentMember.findUnique({
+      where: {
+        documentId_memberId: {
+          documentId: document.id,
+          memberId: targetMemberRow.id,
+        },
+      },
+    });
+
+    if (documentMember) {
+      throw new HttpException(
+        `already in document member`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Persist insert document member
+    const insertDocumentMember = await this.prismaService.documentMember.create(
+      {
+        data: {
+          documentId: document.id,
+          memberId: targetMemberRow.id,
+          isOwner: false,
+          hasAccess: true,
+        },
+      },
+    );
+
+    return {
+      member: {
+        id: insertDocumentMember.memberId,
+      },
+      documentId: insertDocumentMember.documentId,
+    };
   }
 
   async validateDocumentMember(memberId, documentId) {

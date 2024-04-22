@@ -104,10 +104,17 @@ export class DocumentController {
     return await this.documentService.updateDocument(payload);
   }
 
-  @Patch(':id/share')
-  @Bind(Param())
-  patchShareDocument(param) {
-    return this.documentService.shareDocument();
+  @Patch('/:id/share')
+  @UseGuards(JwtAuthGuard)
+  @Bind(Req(), Param(), Body())
+  async patchShareDocument(req, param, body) {
+    const payload = {
+      subject: getSubject(req),
+      id: param.id,
+      ...body,
+    };
+
+    return await this.documentService.shareDocument(payload);
   }
 
   @Get('/:id')
