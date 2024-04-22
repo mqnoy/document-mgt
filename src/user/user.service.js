@@ -62,9 +62,7 @@ export class UserService {
         member: true,
       },
       where: {
-        id: {
-          equals: userId,
-        },
+        id: userId,
       },
     });
 
