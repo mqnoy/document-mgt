@@ -50,9 +50,15 @@ export class DocumentController {
   }
 
   @Post('/presign-upload')
-  @Bind(Body())
-  async postPresignUpload(body) {
-    return await this.documentService.presignUploadDocument(body);
+  @Bind(Req(), Body())
+  @UseGuards(JwtAuthGuard)
+  async postPresignUpload(req, body) {
+    const payload = {
+      ...body,
+      subject: getSubject(req),
+    };
+
+    return await this.documentService.presignUploadDocument(payload);
   }
 
   @Get('/:id/download')

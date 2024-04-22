@@ -125,8 +125,10 @@ export class DocumentService {
   }
 
   async presignUploadDocument(payload) {
-    // TODO: presignUploadDocument document code here
-    const { objectName } = payload;
+    const { objectName, subject } = payload;
+
+    // Determine member id from authorized user
+    await this.userService.findUserByUserId(subject.subjectId);
 
     const uploadUrl = await this.minioService.presignUpload(objectName);
     return {
