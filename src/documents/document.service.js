@@ -137,8 +137,11 @@ export class DocumentService {
   }
 
   async downloadDocument(payload) {
-    // TODO: Determine member id from authorized user
-    const memberId = 1;
+    const { subject } = payload;
+
+    // Determine member id from authorized user
+    const user = await this.userService.findUserByUserId(subject.subjectId);
+    const memberId = user.member.id;
 
     const document = await this.prismaService.document.findUnique({
       where: {

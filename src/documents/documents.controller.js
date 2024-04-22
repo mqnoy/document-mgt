@@ -62,9 +62,15 @@ export class DocumentController {
   }
 
   @Get('/:id/download')
-  @Bind(Param(), Res())
-  async getDownloadDocument(param, res) {
-    const result = await this.documentService.downloadDocument(param);
+  @Bind(Req(), Param(), Res())
+  @UseGuards(JwtAuthGuard)
+  async getDownloadDocument(req, param, res) {
+    const payload = {
+      subject: getSubject(req),
+      ...param,
+    };
+
+    const result = await this.documentService.downloadDocument(payload);
     res.setHeader(
       'Content-Disposition',
       `attachment; filename="${result.fileName}"`,
