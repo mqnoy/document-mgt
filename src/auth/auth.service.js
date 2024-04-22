@@ -21,12 +21,41 @@ export class AuthService {
     this.logger = logger;
     this.logger.setContext(AuthService.name);
   }
-  registerUser() {
-    // TODO: implement register
-    // const salt = await bcrypt.genSalt(10);
-    // const hashedPass = await bcrypt.hash(password, salt);
-    // this.logger.debug(`hasedPass: ${hashedPass}`);
-    return null;
+
+  async registerUser(payload) {
+    const { fullName, email, password } = payload;
+
+    // Validate password length
+    this.validatePassword(password);
+
+    // Validate email is exist
+    await this.checkExistEmail(email);
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPass = await bcrypt.hash(password, salt);
+
+    return await this.userService.createUser({
+      fullName,
+      email,
+      password: hashedPass,
+    });
+  }
+
+  validatePassword(password) {
+    if (password.length < 8) {
+      throw new HttpException(
+        `password doesn't should be greeter than 8`,
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+  }
+
+  async checkExistEmail(email) {
+    const user = await this.userService.checkExistEmail(email);
+    if (user) {
+      throw new HttpException(`email is exist`, HttpStatus.UNAUTHORIZED);
+    }
   }
 
   async login(payload) {

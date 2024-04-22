@@ -83,4 +83,40 @@ export class UserService {
       },
     };
   }
+
+  async checkExistEmail(email) {
+    const row = await this.prismaService.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    return row ?? null;
+  }
+
+  async createUser(payload) {
+    const result = await this.prismaService.$transaction(async (prisma) => {
+      const user = await prisma.user.create({
+        data: {
+          fullName: payload.fullName,
+          email: payload.email,
+          password: payload.password,
+        },
+      });
+
+      const member = await prisma.member.create({
+        data: {
+          userId: user.id,
+          email: user.email,
+        },
+      });
+
+      return {
+        ...user,
+        member,
+      };
+    });
+
+    return this.composeUser(result);
+  }
 }

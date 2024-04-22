@@ -26,8 +26,10 @@ export class AuthController {
 
   @Post('/register')
   @Bind(Body())
-  postRegister(body) {
-    console.log(body);
-    return this.authService.registerUser(body);
+  async postRegister(body) {
+    const payload = {
+      ...body,
+    };
+    return await this.authService.registerUser(payload);
   }
 }
