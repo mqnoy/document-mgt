@@ -8,13 +8,15 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { MinioService } from '../minio/minio.service';
 import { filterKeys } from '../common/constant';
+import { UserService } from '../user/user.service';
 
-@Dependencies(PrismaService, ConsoleLogger, MinioService)
+@Dependencies(PrismaService, ConsoleLogger, MinioService, UserService)
 @Injectable()
 export class DocumentService {
-  constructor(prismaService, logger, minioService) {
+  constructor(prismaService, logger, minioService, userService) {
     this.prismaService = prismaService;
     this.minioService = minioService;
+    this.userService = userService;
 
     this.logger = logger;
     this.logger.setContext(DocumentService.name);
@@ -244,8 +246,11 @@ export class DocumentService {
   }
 
   async detailDocument(payload) {
-    // TODO: Determine member id from authorized user
-    const memberId = 1;
+    const { subject } = payload;
+
+    // Determine member id from authorized user
+    const user = await this.userService.findUserByUserId(subject.subjectId);
+    const memberId = user.member.id;
 
     const document = await this.prismaService.document.findUnique({
       where: {
@@ -255,7 +260,7 @@ export class DocumentService {
 
     if (!document) {
       throw new HttpException(
-        `resource with id ${payload.id} not found`,
+        `document with id ${payload.id} not found`,
         HttpStatus.NOT_FOUND,
       );
     }

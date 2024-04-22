@@ -11,8 +11,12 @@ import {
   Query,
   Body,
   Res,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { DocumentService } from './document.service';
+import { getSubject } from '../common/get-subject';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 
 @Controller('documents')
 @Dependencies(DocumentService)
@@ -70,8 +74,14 @@ export class DocumentController {
   }
 
   @Get('/:id')
-  @Bind(Param())
-  async getDetailDocument(param) {
-    return await this.documentService.detailDocument(param);
+  @UseGuards(JwtAuthGuard)
+  @Bind(Req(), Param())
+  async getDetailDocument(req, param) {
+    const payload = {
+      subject: getSubject(req),
+      id: param.id,
+    };
+
+    return await this.documentService.detailDocument(payload);
   }
 }
