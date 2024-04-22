@@ -26,9 +26,15 @@ export class DocumentController {
   }
 
   @Get('/')
-  @Bind(Query())
-  async getDocumentList(query) {
-    return await this.documentService.listDocuments(query);
+  @UseGuards(JwtAuthGuard)
+  @Bind(Req(), Query())
+  async getDocumentList(req, query) {
+    const payload = {
+      subject: getSubject(req),
+      ...query,
+    };
+
+    return await this.documentService.listDocuments(payload);
   }
 
   @Post('/')

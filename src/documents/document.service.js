@@ -49,14 +49,15 @@ export class DocumentService {
   }
 
   async listDocuments(payload) {
-    const { skip, take, sortBy } = payload;
+    const { skip, take, sortBy, subject } = payload;
     const filters = payload.filters ?? {};
     const orderBy = this.parseSortBy(sortBy);
 
     let where = {};
 
-    // TODO: Determine member id from authorized user
-    const memberId = 1;
+    // Determine member id from authorized user
+    const user = await this.userService.findUserByUserId(subject.subjectId);
+    const memberId = user.member.id;
 
     if (filters[filterKeys.Title]) {
       Object.assign(where, {
@@ -88,9 +89,7 @@ export class DocumentService {
             hasAccess: {
               equals: true,
             },
-            memberId: {
-              equals: memberId,
-            },
+            memberId,
           },
         },
       },
