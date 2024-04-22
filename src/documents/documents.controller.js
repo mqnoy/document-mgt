@@ -32,9 +32,15 @@ export class DocumentController {
   }
 
   @Post('/')
-  @Bind(Body())
-  postCreateDocument(body) {
-    return this.documentService.createDocument(body);
+  @Bind(Req(), Body())
+  @UseGuards(JwtAuthGuard)
+  async postCreateDocument(req, body) {
+    const payload = {
+      ...body,
+      subject: getSubject(req),
+    };
+
+    return await this.documentService.createDocument(payload);
   }
 
   @Post('/presign-upload')
